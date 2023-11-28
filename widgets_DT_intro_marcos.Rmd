@@ -1,0 +1,66 @@
+---
+title: "Saeb 2019 Pernambuco (DT)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    horizontal_layout: fill
+    theme: yeti
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(
+  ## ETL
+  dplyr,
+  ## WIDGETS
+  DT
+  )
+
+tab_saebPE <- readRDS("tab_saebPE.rds")
+
+summ_table <- tab_saebPE %>% 
+  group_by(escola) %>% 
+  summarise(municipio = first(municipio),
+            escola = first(escola),
+            ideb = first(ideb),
+            classe = first(classe_mat),
+            ik = round(100*mean(ik_insemat),2))
+```
+PE
+================================
+
+```{r PE}
+summ_table %>% datatable(
+  # Título
+  caption = htmltools::tags$caption(
+    # estilo do título usando css
+    style = 'text-align: center; font-size: 18px; font-weight: bold;',
+    'Tabela 1: Base de Dados Saeb 2019'),
+  # nomes das colunas
+  colnames = c('municipio', 'escola', 'ideb', 'classe_mat', 'ik(%)'),
+  filter = "top",
+  # extensões para serem acrescentadas
+  extensions = c('Buttons', 'ColReorder', 'Responsive'),
+  # as opções configuram efetivamente as extensões
+  options = list(
+    #
+    dom = 'Blfrtip',
+    # primeiro vamos configurar os botões, adicionando funcionalidades
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    # permite ao usuário reordenar as colunas
+    colReorder = TRUE,
+    # controla quantas linhas serão mostradas por página
+    pageLength = 50, 
+    # ativa o spinner (indicador de processamento)
+    processing = TRUE
+  )
+) #%>% # podemos usar também formatações de estilo avançadas para as colunas
+  #formatStyle(
+  #  'classe_mat',
+  #  color = styleInterval(1.6, c('black', 'white')),
+  #  background = styleColorBar(iris$Petal.Length, 'lightblue')
+  #)
+```
+
+SP
+================================
+
