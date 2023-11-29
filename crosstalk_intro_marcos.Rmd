@@ -1,0 +1,46 @@
+---
+title: Efeito Escola em Pernambuco
+output: html_document
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(crosstalk, dplyr, DT, plotly)
+  
+# Carregando base
+summ_table <- readRDS("summ_table.rds")
+
+# Transformando classe do efeito escola em factor
+summ_table <- summ_table %>% dplyr::mutate(classe = as.factor(classe))
+
+# Compartilhando base com os Widgets
+sd <- SharedData$new(summ_table)
+```
+
+```{r, warning=FALSE, out.width='100%', echo = FALSE, message = FALSE}
+
+filter_slider("ideb", "IDEB", sd, column=~ideb, step=0.1, width=250)
+
+filter_checkbox("classe", "Efeito Escola", sd, ~classe, inline = TRUE)
+
+sd %>% plot_ly() %>% 
+  add_trace(lon = ~long, lat = ~lat
+          , type = "scattermapbox"
+          , text = ~classe
+          , alpha = 0.8
+          , mode = "marker"
+          , color = I("#1f77b4")
+          , hoverinfo = ~classe) %>%
+  layout(
+    mapbox = list(
+      style = 'open-street-map',
+      zoom = 3,
+      center = list(lon = -34.9, 
+                    lat = -8.05))) %>% highlight(on = "plotly_selected", off = "plotly_deselect", color = 'red')
+  
+sd %>% plot_ly(x = ~ik, y = ~ideb, color = ~classe)
+  
+sd %>% datatable(
+  filter = list(
+    position = 'bottom', clear = FALSE, plain = TRUE)
+  )
+```
