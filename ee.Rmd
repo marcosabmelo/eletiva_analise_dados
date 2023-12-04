@@ -1,0 +1,166 @@
+---
+title: "Eficácia com Equidade"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(forcats, tidyverse, crosstalk, dplyr, DT, plotly, flexdashboard, shiny, sf, brmap)
+```
+
+```{r data}
+# Carregando base
+df_saebPE <- readRDS("df_saebPE.rds")
+tab_saebPE <- readRDS("tab_saebPE.rds")
+
+# Mapa dos Estados
+#data("brmap_estado")
+df_estados <- readRDS("df_estados.rds")
+
+# Compartilhando base com os Widgets
+sd <- SharedData$new(df_saebPE)
+sd1 <- SharedData$new(df_estados)
+```
+
+Column {.sidebar data-width=300}
+=======================================================================
+
+```{r}
+filter_select("estado_nome", "Escolha o Estado", sd1, ~estado_nome, multiple = FALSE)
+#filter_select("Primary_Position", "Escolha o Município", sd, ~Primary_Position, multiple = FALSE)
+#filter_slider("Overall_Pick", "Ideb", sd, ~Overall_Pick)
+#filter_slider("Year", "IK", sd, ~Year, round = TRUE, ticks = FALSE)
+```
+
+
+
+Estados
+=======================================================================
+
+Column
+-----------------------------------------------------------------------
+
+### Ideb dos Estados: Anos Finais 2019
+
+```{r}
+chart1 <- ggplot(df_estados) +
+  geom_sf(aes(fill = ideb2019)) +
+  # mudar escala de cores para sequencial Spectral
+  scale_fill_distiller(type = "seq",
+                       palette = "Spectral",
+                       direction = 1) +
+  # deixar o mapa mais limpo e sem eixos
+    theme(
+      legend.position = "bottom",
+      panel.background = element_blank(),
+      panel.grid.major = element_line(color = "transparent"),
+      axis.text = element_blank(),
+      axis.ticks = element_blank()
+      )
+plotly::ggplotly(chart1)
+
+```
+
+### Efeito Escola - Matemática x Ideb 
+
+```{r}
+plot_ly(data = tab_saebPE, x = ~efeito_mat, y = ~ideb, type = 'scatter', mode = 'markers',
+        text = ~paste('Município:', municipio, '<br>Escola:', escola),
+        color = ~classe_mat)
+```
+
+
+Column
+-----------------------------------------------------------------------
+
+### Desempenho Básico e Adequado
+
+```{r}
+aux <- data.frame(100*round(prop.table(table(tab_saebPE$catport)),digits = 2), 
+                   100*round(prop.table(table(tab_saebPE$catmat)),digits = 2))
+categorias <- c("Adequado", "Básico")
+portugues <- aux$Freq
+matematica <- aux$Freq.1
+
+df1 <- data.frame(categorias, portugues, matematica)
+
+df1$categorias <- fct_rev(as.factor(df1$categorias))
+
+df1 %>% pivot_longer(cols=c('portugues', 'matematica'),
+                    names_to='materia',
+                    values_to='percentual') %>%
+  plot_ly(name = ~categorias,
+          x = ~percentual,
+          y = ~materia,
+          type = "bar",
+          color = ~categorias,
+          colors = c("#FDAE61", "#3288BD"),
+          orientation = "h") %>%
+  layout(barmode = "stack",
+         xaxis = list(title = NA,
+                      ticksuffix = "%"),
+         yaxis = list(title = NA))
+
+```
+
+### Efeito Escola - Português x Ideb 
+
+```{r}
+plot_ly(data = tab_saebPE, x = ~efeito_port, y = ~ideb, type = 'scatter', mode = 'markers',
+        text = ~paste('Município:', municipio, '<br>Escola:', escola),
+        color = ~classe_mat)
+```
+
+
+Municípios
+=======================================================================
+
+Column
+-----------------------------------------------------------------------
+
+### Ideb dos Municípios
+
+```{r}
+ggplot(brmap_estado) +
+  # a linha abaixo da no mesmo que geom_sf(aes(geometry = geometry))
+  geom_sf(aes(geometry = geometry,
+              # colorir os poligonos de acordo com sua regiao
+              fill = as.character(regiao_cod))) +
+  # deixar o mapa mais limpo e sem eixos
+    theme(
+    panel.background = element_blank(),
+    panel.grid.major = element_line(color = "transparent"),
+    axis.text = element_blank(),
+    axis.ticks = element_blank()
+  ) + 
+  # mudar titulo da legenda
+  labs(fill = "Região")
+```
+
+### Chart B - Municípios
+
+```{r}
+
+```
+
+Column
+-----------------------------------------------------------------------
+
+### Chart C - Municípios
+
+```{r}
+
+```
+
+### Chart D - Municípios
+
+```{r}
+
+```
+
+
+
+
