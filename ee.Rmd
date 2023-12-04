@@ -124,20 +124,7 @@ Column
 ### Ideb dos Municípios
 
 ```{r}
-ggplot(brmap_estado) +
-  # a linha abaixo da no mesmo que geom_sf(aes(geometry = geometry))
-  geom_sf(aes(geometry = geometry,
-              # colorir os poligonos de acordo com sua regiao
-              fill = as.character(regiao_cod))) +
-  # deixar o mapa mais limpo e sem eixos
-    theme(
-    panel.background = element_blank(),
-    panel.grid.major = element_line(color = "transparent"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank()
-  ) + 
-  # mudar titulo da legenda
-  labs(fill = "Região")
+
 ```
 
 ### Chart B - Municípios
